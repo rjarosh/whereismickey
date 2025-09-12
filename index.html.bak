@@ -112,9 +112,10 @@
     <header>
       <h2>Table</h2>
     </header>
-    
-<div style="min-height:400px" id="datawrapper-vis-QSeek"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/QSeek/embed.js" charset="utf-8" data-target="#datawrapper-vis-QSeek"></script><noscript><img src="https://datawrapper.dwcdn.net/QSeek/full.png" alt="Disney World Characters (Table)" /></noscript></div>
+    <iframe title="Disney World Characters" aria-label="Table" id="datawrapper-chart-HmEEe" src="https://datawrapper.dwcdn.net/HmEEe/1/" scrolling="no" frameborder="0" style="width: 0; min-width: 100% !important; border: none;" height="4400" data-external="1"></iframe><script type="text/javascript">!function(){"use strict";window.addEventListener("message",function(a){if(void 0!==a.data["datawrapper-height"]){var e=document.querySelectorAll("iframe");for(var t in a.data["datawrapper-height"])for(var r,i=0;r=e[i];i++)if(r.contentWindow===a.source){var d=a.data["datawrapper-height"][t]+"px";r.style.height=d}}})}();
 
+    
+</script>
   </article>
 </section>
 
