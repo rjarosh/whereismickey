@@ -7,6 +7,29 @@
   <meta name="description" content="Find when and where WDW Characters are." />
   <style>
 
+@media screen and (orientation: portrait) {
+  .rotate-hint {
+    display: block;
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    z-index: 9999;
+  }
+}
+/* rotate suggestiong on mobile*/
+@media screen and (orientation: landscape) {
+  .rotate-hint {
+    display: none;
+  }
+}
+
+
     /* make flourish charts expand fully */
   .flourish-embed {
     width: 100% !important;
@@ -85,6 +108,10 @@
       </nav>
     </div>
   </header>
+  <div class="rotate-hint" id="rotateHint">
+  Best viewed in landscape
+  <span style="margin-left:8px;cursor:pointer;">✕</span>
+</div>
 
   <main class="wrap" id="home">
     <section class="hero">
@@ -140,6 +167,15 @@
       const open = mainNav.classList.toggle('open');
       menuToggle.setAttribute('aria-expanded', String(open));
     });
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+  const hint = document.getElementById("rotateHint");
+  hint.addEventListener("click", () => {
+    hint.style.display = "none";
+  });
+});
+    
   </script>
 </body>
 </html>
