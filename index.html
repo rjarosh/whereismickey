@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline Charts</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: #f9f9f9; 
+    color: #333; 
+    line-height: 1.6;
+  }
+  
+  header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 20px;
+    text-align: center;
+    position: relative;
+  }
+  
+  header .header-image {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 220px;
+    height: 220px;
+    opacity: 0.9;
+  }
+  
+  header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  
+  header p {
+    font-size: 1.2em;
+    opacity: 0.9;
+  }
+  
+/*  if I decide to hide the header image later...*/
+  /*@media (max-width: 408px) {
+    header .header-image {
+      display: none;
+      }
+    }*/
+  
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  section {
+    padding: 60px 0;
+  }
+  
+  .section-title {
+    font-size: 2em;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #333;
+  }
+  
+  .chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 40px;
+  }
+  
+  .chart-container h3 {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: #667eea;
+  }
+  
+  #chart1, #chart2 {
+    width: 100%;
+    min-height: 400px;
+  }
+  
+  #chart2 {
+    width: 100%;
+    min-height: 500px;
+  }
+  
+  #chart2 iframe {
+    width: 100%;
+    min-height: 500px;
+    border: none;
+  }
+  
+  #about {
+    background: white;
+  }
+  
+  .about-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  
+  .about-content h2 {
+    color: #667eea;
+    margin-bottom: 20px;
+  }
+  
+  .about-content p {
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    color: #555;
+  }
+  
+  footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 30px 20px;
+  }
+  
+  footer p {
+    opacity: 0.8;
+  }
+  
+  /* Timeline chart styles */
+  .task { stroke-width: 0; fill-opacity: 0.85; cursor: pointer; }
+  .separator { stroke: #ccc; stroke-width: 1px; }
+  .hour-line { stroke: #ddd; stroke-width: 1px; stroke-dasharray: 2 2; }
+  .tooltip { 
+    position: absolute; 
+    background: rgba(0,0,0,0.85); 
+    color: white; 
+    padding: 6px 12px; 
+    border-radius: 6px; 
+    pointer-events: none; 
+    font-size: 13px; 
+    max-width: 250px; 
+    line-height: 1.3em; 
+    white-space: normal; 
+    word-wrap: break-word; 
+  }
+  
+  #rotate-message {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+    color: white;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  #rotate-message::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300"><rect x="50" y="20" width="700" height="20" fill="%23ddd" rx="2"/><rect x="50" y="50" width="120" height="15" fill="%23FF5C77" rx="2"/><rect x="180" y="50" width="90" height="15" fill="%230096FF" rx="2"/><rect x="280" y="50" width="150" height="15" fill="%23FFD700" rx="2"/><rect x="50" y="75" width="700" height="20" fill="%23ddd" rx="2"/><rect x="50" y="105" width="180" height="15" fill="%2300A300" rx="2"/><rect x="240" y="105" width="100" height="15" fill="%23FF5C77" rx="2"/><rect x="50" y="130" width="700" height="20" fill="%23ddd" rx="2"/><rect x="50" y="160" width="140" height="15" fill="%230096FF" rx="2"/><rect x="200" y="160" width="110" height="15" fill="%23FFD700" rx="2"/><rect x="320" y="160" width="80" height="15" fill="%23FF5C77" rx="2"/><rect x="50" y="185" width="700" height="20" fill="%23ddd" rx="2"/><rect x="50" y="215" width="200" height="15" fill="%2300A300" rx="2"/><rect x="260" y="215" width="90" height="15" fill="%230096FF" rx="2"/><line x1="50" y1="20" x2="50" y2="240" stroke="%23999" stroke-width="2"/><line x1="50" y1="240" x2="750" y2="240" stroke="%23999" stroke-width="2"/></svg>');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15;
+    z-index: 0;
+  }
+  
+  #rotate-message > * {
+    position: relative;
+    z-index: 1;
+  }
+  
+  #rotate-message svg {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 16px;
+    animation: rotate-pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes rotate-pulse {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(90deg) scale(1.1); }
+  }
+  
+  #rotate-message h2 {
+    font-size: 20px;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+  }
+  
+  #rotate-message p {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
+  }
+  
+  @media (max-width: 768px) and (orientation: portrait) {
+    #rotate-message { display: flex; }
+    #chart1-content { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="assets/drawing.png" alt="" class="header-image">
+  <h1>Where is Mickey?</h1>
+  <p>Explore <i>when</i> and <i>where</i> your favorite Disney World can be found daily.</p>
+</header>
+
+<section id="charts">
+  <div class="container">
+    
+    <div class="chart-container">
+      <h3>Timeline Chart</h3>
+      <div id="rotate-message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="5" width="14" height="14" rx="2"/>
+          <path d="M16 3h5v5M21 3l-7 7"/>
+        </svg>
+        <h2>Please Rotate Your Device</h2>
+        <p>This timeline is best viewed in landscape mode</p>
+      </div>
+      <div id="chart1-content">
+        <div id="chart1"></div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <h3>Text Table</h3>
+      <div id="chart2">
+        <div style="min-height:400px" id="datawrapper-vis-75fpy"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/75fpy/embed.js" charset="utf-8" data-target="#datawrapper-vis-75fpy"></script><noscript><img src="https://datawrapper.dwcdn.net/75fpy/full.png" alt="Disney World Characters (Table)" /></noscript></div>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<section id="about">
+  <div class="container">
+    <div class="about-content">
+      <h2>About</h2>
+      <p>
+        I'm Robert and I play piano for a living.
+      </p>
+      <p>
+        This website makes it easy to visualize when and where you can meet characters
+        at Walt Disney World. There is no insider info: this can all be found on the official
+        WDW app, but I wanted an easier way to see it.
+      </p>
+      <p>
+        Data is updated daily. The timeline is rendered in D3.js and the text table uses the DataWrapper API.
+        Try filtering by Park in the timeline (including custom filtering) or sorting or searching any field of the text table. 
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2025 Where is Mickey. All rights reserved.</p>
+</footer>
+
+<script>
+const margin = { top: 120, right: 20, bottom: 40, left: 170 };
+
+// Parks and colors
+const parks = ["Magic Kingdom","EPCOT","Hollywood Studios","Animal Kingdom"];
+const colorScale = d3.scaleOrdinal().domain(parks).range(["#FF5C77","#0096FF","#FFD700","#00A300"]);
+
+// Keep track of which parks are visible
+let filteredParks = new Set(parks);
+
+// Load data from JSON
+d3.json("timeline_data.json").then(data => {
+    data.forEach(d => {
+        d.start = new Date(d.start);
+        d.end = d.end ? new Date(d.end) : null;
+    });
+    window.timelineData = data;
+    updateChart();
+}).catch(err => {
+    console.log("Demo mode - no data file found");
+    // You can add demo data here if needed
+});
+
+// Main chart function
+function updateChart(){
+    if(!window.timelineData) return;
+    
+    const data = window.timelineData;
+    const containerWidth = document.getElementById("chart1").clientWidth;
+    const width = containerWidth - margin.left - margin.right;
+
+    // Compute min/max times
+    const times = data.flatMap(d => [d.start, d.end || d.start]);
+    const minTime = new Date(Math.min(...times) - 15*60*1000);
+    const maxTime = new Date(Math.max(...times) + 15*60*1000);
+
+    const x = d3.scaleTime().domain([minTime, maxTime]).range([0,width]);
+
+    const visibleData = data.filter(d => filteredParks.has(d.park));
+    const visibleChars = Array.from(new Set(visibleData.map(d => d.char))).sort();
+
+    // Compute lanes for overlapping events
+    const dataByChar = d3.group(visibleData, d => d.char);
+    dataByChar.forEach(events => {
+        events.sort((a,b) => a.start - b.start);
+        const lanes = [];
+        events.forEach(event => {
+            let placed = false;
+            const minPixelWidth = 8;
+            const pixelsToMs = (maxTime - minTime) / width;
+            const minTimeBuffer = minPixelWidth * pixelsToMs;
+            const visualEnd = event.end && event.end > event.start ? event.end : new Date(event.start.getTime() + minTimeBuffer);
+            
+            for(let i=0;i<lanes.length;i++){
+                const lastEvent = lanes[i][lanes[i].length-1];
+                if(!lanes[i].length){
+                    lanes[i].push(event);
+                    event.lane = i;
+                    placed = true;
+                    break;
+                }
+                const lastVisualEnd = lastEvent.end && lastEvent.end > lastEvent.start ? lastEvent.end : new Date(lastEvent.start.getTime() + minTimeBuffer);
+                
+                if(event.start >= lastVisualEnd){
+                    lanes[i].push(event);
+                    event.lane = i;
+                    placed = true;
+                    break;
+                }
+            }
+            if(!placed){ lanes.push([event]); event.lane = lanes.length-1; }
+        });
+        events.numLanes = lanes.length;
+    });
+
+    const laneHeight = 22;
+    const charOffsets = {};
+    let currentY = 0;
+    visibleChars.forEach(char=>{
+        const lanes = dataByChar.get(char).numLanes;
+        charOffsets[char] = {y: currentY, height: lanes*laneHeight};
+        currentY += lanes*laneHeight + 5;
+    });
+
+    d3.select("#chart1").selectAll("*").remove();
+    const svg = d3.select("#chart1").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", currentY + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",`translate(${margin.left},${margin.top})`);
+
+    // Hour lines
+    for(let h=0; h<=24; h++){
+        svg.append("line")
+            .attr("class","hour-line")
+            .attr("x1", x(new Date(2025,9,10,h)))
+            .attr("x2", x(new Date(2025,9,10,h)))
+            .attr("y1", 0)
+            .attr("y2", currentY);
+    }
+
+    // Background stripes
+    visibleChars.forEach((char,idx)=>{
+        if(idx%2===0){
+            svg.append("rect")
+                .attr("x",0)
+                .attr("y",charOffsets[char].y)
+                .attr("width",width)
+                .attr("height",charOffsets[char].height)
+                .attr("fill","#f0f0f0");
+        }
+    });
+
+    // Separators
+    visibleChars.forEach(char=>{
+        svg.append("line")
+            .attr("class","separator")
+            .attr("x1",0)
+            .attr("x2",width)
+            .attr("y1",charOffsets[char].y + charOffsets[char].height + 2)
+            .attr("y2",charOffsets[char].y + charOffsets[char].height + 2);
+    });
+
+    // Y labels
+    const maxChars = 16;
+    svg.append("g").selectAll("text")
+        .data(visibleChars).enter()
+        .append("text")
+        .attr("x",-10)
+        .attr("y",d=>charOffsets[d].y+5)
+        .attr("text-anchor","end")
+        .attr("dominant-baseline","hanging")
+        .attr("font-weight","600")
+        .text(d=> d.length > maxChars ? d.slice(0,maxChars)+"..." : d);
+
+    // X-axis
+    const hours = (x.domain()[1] - x.domain()[0]) / (1000*60*60);
+    const minPixelPerTick = 50;
+    const tickInterval = (hours * minPixelPerTick > width) ? 2 : 1;
+
+    const xAxis = svg.append("g")
+        .attr("transform", `translate(0,0)`)
+        .call(d3.axisTop(x)
+            .ticks(d3.timeHour.every(tickInterval))
+            .tickFormat(d => {
+                const h = d.getHours();
+                return (h % 12 === 0 ? 12 : h % 12) + (h < 12 ? " AM" : " PM");
+            }));
+    xAxis.select(".domain").remove();
+
+    // Style x-axis tick labels
+    xAxis.selectAll("text")
+        .style("font-size", "12px")
+        .style("fill","#696969")
+        .style("font-weight", "600");
+
+    const tooltip = d3.select("body").append("div").attr("class","tooltip").style("opacity",0);
+
+    // Bars
+    svg.selectAll(".task")
+        .data(visibleData)
+        .enter()
+        .append("rect")
+        .attr("class","task")
+        .attr("x", d=>x(d.start))
+        .attr("y", d=>charOffsets[d.char].y + (d.lane*laneHeight))
+        .attr("width", d => {
+            const w = d.end ? x(d.end) - x(d.start) : 0;
+            return w < 8 ? 8 : w;
+        })
+        .attr("height", laneHeight-2)
+        .attr("rx",3).attr("ry",3)
+        .attr("fill", d=>colorScale(d.park))
+        .on("mouseover",(event,d)=>{
+            tooltip.transition().duration(200).style("opacity",0.95);
+            tooltip.html(`
+                <div style="font-weight:bold;color:#fff">${d.char}</div>
+                <div><i>${d.park}</i> - ${d.ancestorLandName || ""}</div>
+                <div>${d.locationName || ""}</div>
+                <hr style="border:0;border-top:1px solid #777;margin:4px 0;">
+                <div>${d.pretty_time || (d.start.getHours()+":00" + (d.end? ' - '+d.end.getHours()+':00':''))}</div>
+                <div style="font-style:italic;color:#ddd;margin-top:4px;">${d.description || ""}</div>
+            `)
+            .style("left",(event.pageX+5)+"px")
+            .style("top",(event.pageY-28)+"px");
+        })
+        .on("mouseout",()=>tooltip.transition().duration(500).style("opacity",0))
+        .on("touchstart",(event,d)=>{
+            event.preventDefault();
+            tooltip.transition().duration(200).style("opacity",0.95);
+            tooltip.html(`
+                <div style="font-weight:bold;color:#fff">${d.char}</div>
+                <div>${d.park} - ${d.ancestorLandName || ""}</div>
+                <div>${d.locationName || ""}</div>
+                <hr style="border:0;border-top:1px solid #777;margin:4px 0;">
+                <div>${d.pretty_time || (d.start.getHours()+":00" + (d.end? ' - '+d.end.getHours()+':00':''))}</div>
+                <div style="font-style:italic;color:#ddd;margin-top:4px;">${d.description || ""}</div>
+            `)
+            .style("left",(event.touches[0].pageX+5)+"px")
+            .style("top",(event.touches[0].pageY-28)+"px");
+            setTimeout(()=>tooltip.transition().duration(500).style("opacity",0), 3000);
+        });
+    
+    // Hide tooltip when tapping elsewhere
+    d3.select("body").on("touchstart.tooltip", function(event){
+        if(!event.target.closest('.task')){
+            tooltip.transition().duration(500).style("opacity",0);
+        }
+    });
+
+    // Legend buttons
+    const buttonWidth = 110, buttonHeight = 26, legendPadding = 8;
+    const buttonsPerRow = parks.length; // Always keep all buttons in one row
+
+    const legend = svg.selectAll(".legend")
+        .data(parks).enter()
+        .append("g")
+        .attr("class","legend")
+        .attr("transform",(d,i)=>{
+            const row = Math.floor(i / buttonsPerRow);
+            const col = i % buttonsPerRow;
+            const xPos = col * (buttonWidth + legendPadding);
+            const yPos = -120 - row * (buttonHeight + legendPadding);
+            return `translate(${xPos},${yPos})`;
+        })
+        .style("cursor","pointer")
+        .on("click", function(event,d){
+            if(filteredParks.has(d)) filteredParks.delete(d);
+            else filteredParks.add(d);
+            updateChart();
+        });
+
+    legend.append("rect")
+        .attr("x",0)
+        .attr("y",0)
+        .attr("width",buttonWidth)
+        .attr("height",buttonHeight)
+        .attr("rx",4).attr("ry",4)
+        .attr("fill",d=>colorScale(d))
+        .attr("opacity",d=>filteredParks.has(d)?1:0.3);
+
+    legend.append("text")
+        .attr("x",buttonWidth/2)
+        .attr("y",buttonHeight/2)
+        .attr("text-anchor","middle")
+        .attr("dominant-baseline","middle")
+        .text(d=>d)
+        .style("font-size","13px")
+        .style("fill",d=>filteredParks.has(d)?"#fff":"#ddd");
+}
+
+window.addEventListener("resize", updateChart);
+</script>
+
+</body>
+</html>
