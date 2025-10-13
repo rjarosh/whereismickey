@@ -237,7 +237,7 @@
   <div class="container">
     
     <div class="chart-container">
-      <h3>Timeline Chart</h3>
+      <h3 id="timelineHeader"></h3>
       <div id="rotate-message">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="2" y="5" width="14" height="14" rx="2"/>
@@ -252,7 +252,7 @@
     </div>
     
     <div class="chart-container">
-      <h3>Text Table</h3>
+      <h3 id="tableHeader"></h3>
       <div id="chart2">
         <div style="min-height:400px" id="datawrapper-vis-75fpy"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/75fpy/embed.js" charset="utf-8" data-target="#datawrapper-vis-75fpy"></script><noscript><img src="https://datawrapper.dwcdn.net/75fpy/full.png" alt="Disney World Characters (Table)" /></noscript></div>
       </div>
@@ -497,7 +497,7 @@ function updateChart(){
     });
 
     // Legend buttons
-    const buttonWidth = 110, buttonHeight = 26, legendPadding = 8;
+    const buttonWidth = 120, buttonHeight = 26, legendPadding = 7;
     const buttonsPerRow = parks.length; // Always keep all buttons in one row
 
     const legend = svg.selectAll(".legend")
@@ -507,7 +507,9 @@ function updateChart(){
         .attr("transform",(d,i)=>{
             const row = Math.floor(i / buttonsPerRow);
             const col = i % buttonsPerRow;
-            const xPos = col * (buttonWidth + legendPadding);
+            const xPos = -margin.left + 10 + col * (buttonWidth + legendPadding);
+            // use the above instead below to align the buttons better
+            // const xPos = col * (buttonWidth + legendPadding);
             const yPos = -120 - row * (buttonHeight + legendPadding);
             return `translate(${xPos},${yPos})`;
         })
@@ -544,10 +546,16 @@ fetch('last_updated.json')
     .then(response => response.json())
     .then(data => {
         document.getElementById('lastUpdated').textContent = data.last_updated;
+
+        document.getElementById('timelineHeader').textContent = data.weekday + "'s Timeline";
+        document.getElementById('tableHeader').textContent = data.weekday + "'s Table";
     })
     .catch(error => {
         console.error('Error loading "lastUpdated.json":', error);
+
         document.getElementById('lastUpdated').textContent = 'October 1, 1971';
+        document.getElementById('timelineHeader').textContent = "Timeline"
+        document.getElementById('tableHeader').textContent = "Table"
     });
 </script>
 
