@@ -272,6 +272,7 @@
 
 <footer>
   <p>&copy; 2025 Where is Mickey. All rights reserved.</p>
+  <p style="font-size: 10px;"><i>Last Updated: <span id="lastUpdated"></span></i></p>
 </footer>
 
 <script>
@@ -526,6 +527,17 @@ function updateChart(){
 }
 
 window.addEventListener("resize", updateChart);
+
+// Include the "last updated" bit in the footer
+fetch('last_updated.json')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('lastUpdated').textContent = data.last_updated;
+    })
+    .catch(error => {
+        console.error('Error loading "lastUpdated.json":', error);
+        document.getElementById('lastUpdated').textContent = 'October 1, 1971';
+    });
 </script>
 
 </body>
