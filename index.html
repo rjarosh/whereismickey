@@ -316,6 +316,16 @@ d3.json("timeline_data.json").then(data => {
     // You can add demo data here if needed
 });
 
+// For extra-long names, use an alias on the chart
+const nameAliases = {
+    "Captain Jack Sparrow": "Jack Sparrow",
+    "James P. Sullivan (Sulley)": "Sulley",
+    "First Order Stormtrooper": "Stormtrooper",
+    "Ariel (From the Animated Story)": "Ariel (Animated)",
+    "Ariel (From the Live-Action Story)": "Ariel (Live)"
+};
+
+
 // Main chart function
 function updateChart(){
     if(!window.timelineData) return;
@@ -332,7 +342,14 @@ function updateChart(){
     const x = d3.scaleTime().domain([minTime, maxTime]).range([0,width]);
 
     const visibleData = data.filter(d => filteredParks.has(d.park));
-    const visibleChars = Array.from(new Set(visibleData.map(d => d.char))).sort();
+    // Changed 10-16: Sort by Alias name first
+    const visibleChars = Array.from(new Set(visibleData.map(d => d.char)))
+    .sort((a, b) => {
+        const aliasA = nameAliases[a] || a;
+        const aliasB = nameAliases[b] || b;
+        return aliasA.localeCompare(aliasB);
+    });
+
 
     // Compute lanes for overlapping events
     const dataByChar = d3.group(visibleData, d => d.char);
@@ -426,7 +443,11 @@ function updateChart(){
         .attr("text-anchor","end")
         .attr("dominant-baseline","hanging")
         .attr("font-weight","600")
-        .text(d=> d.length > maxChars ? d.slice(0,maxChars)+"..." : d);
+        .text(d => {
+          const alias = nameAliases[d] || d;  // use alias if it exists
+          return alias.length > maxChars ? alias.slice(0, maxChars) + "..." : alias;
+    });
+
 
     // X-axis
     const hours = (x.domain()[1] - x.domain()[0]) / (1000*60*60);
